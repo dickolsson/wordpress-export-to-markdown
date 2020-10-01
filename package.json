@@ -20,6 +20,7 @@
 		"node": ">= 12.14.0"
 	},
 	"dependencies": {
+		"md5": "^2.3.0",
 		"camelcase": "^6.0.0",
 		"chalk": "^4.0.0",
 		"commander": "^5.0.0",

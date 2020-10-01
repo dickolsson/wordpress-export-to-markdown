@@ -1,4 +1,5 @@
 const turndown = require('turndown');
+const shared = require('./shared');
 
 function initTurndownService() {
 	const turndownService = new turndown({
@@ -61,10 +62,16 @@ function getPostContent(post, turndownService, config) {
 	// without mucking up content inside of other elemnts (like <code> blocks)
 	content = content.replace(/(\r?\n){2}/g, '\n<div></div>\n');
 
+        // Remove caption shortcode.
+        content = content.replace(/\[caption .*?\](<img[^>]*>)(.*?)\[\/caption\]/gi, '$1\n<div></div>\n<em>$2</em>');
+
 	if (config.saveScrapedImages) {
-		// writeImageFile() will save all content images to a relative /images
-        // folder so update references in post content to match
-		content = content.replace(/(<img[^>]*src=").*?([^/"]+\.(?:gif|jpe?g|png))("[^>]*>)/gi, '$1images/$2$3');
+		let pattern = /(<img[^>]*src=")(.*?)("[^>]*>)/gi
+		while ((result = pattern.exec(content)) !== null) {
+			let url = result[2];
+			let type = url.split('.').pop();
+			content = content.replace(url, 'images/' + shared.getFilenameFromUrl(url, config));
+		}
 	}
 
 	// this is a hack to make <iframe> nodes non-empty by inserting a "." which

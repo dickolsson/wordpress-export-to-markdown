@@ -57,6 +57,13 @@ const options = [
 		default: false
 	},
 	{
+		name: 'frontmatter',
+		aliases: ['frontmatter'],
+		type: 'boolean',
+		description: 'Add frontmatter to the Markdown file',
+		default: true
+	},
+	{
 		name: 'save-attached-images',
 		aliases: ['saveimages'],
 		type: 'boolean',
@@ -69,6 +76,13 @@ const options = [
 		type: 'boolean',
 		description: 'Save images scraped from post body content',
 		default: true
+	},
+	{
+		name: 'hash-filenames',
+		aliases: ['hashfilenames'],
+		type: 'boolean',
+		description: 'Create consistent filenames by hashing',
+		default: false
 	}
 ];
 

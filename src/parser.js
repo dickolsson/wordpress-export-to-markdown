@@ -23,7 +23,7 @@ async function parseFilePromise(config) {
 		images.push(...collectScrapedImages(data));
 	}
 
-	mergeImagesIntoPosts(images, posts);
+	mergeImagesIntoPosts(images, posts, config);
 
 	return posts;
 }
@@ -121,7 +121,7 @@ function collectScrapedImages(data) {
 	return images;
 }
 
-function mergeImagesIntoPosts(images, posts) {
+function mergeImagesIntoPosts(images, posts, config) {
 	// create lookup table for quicker traversal
 	const postsLookup = posts.reduce((lookup, post) => {
 		lookup[post.meta.id] = post;
@@ -133,7 +133,7 @@ function mergeImagesIntoPosts(images, posts) {
 		if (post) {
 			if (image.id === post.meta.coverImageId) {
 				// save cover image filename to frontmatter
-				post.frontmatter.coverImage = shared.getFilenameFromUrl(image.url);
+				post.frontmatter.coverImage = shared.getFilenameFromUrl(image.url, config);
 			}
 			
 			// save (unique) full image URLs for downloading later

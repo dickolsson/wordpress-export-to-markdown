@@ -9,7 +9,41 @@ const settings = require('./settings');
 
 async function writeFilesPromise(posts, config) {
 	await writeMarkdownFilesPromise(posts, config);
+	await writePathsFilePromise(posts, config);
 	await writeImageFilesPromise(posts, config);
+}
+
+async function writePathsFilePromise(posts, config) {
+	const promise = new Promise((resolve, reject) => {
+		try {
+			console.log('\nSaving paths.csv...');
+
+			const lines = posts.map((post, index) => {
+				let postPath = getPostPath(post, config).split('/');
+				// remove the first and last elements (output dir and markdown file)
+				postPath.shift();
+				postPath.pop();
+
+				const oldPath = post.meta.slug;
+				const newPath = postPath.join('/');
+				return oldPath + ',' + newPath + '\n';
+			});
+
+			const csv = path.join(config.output, 'paths.csv');
+			fs.mkdirSync(config.output, {recursive: true});
+
+			fs.appendFileSync(csv, 'Old path,New path\n');
+			lines.forEach(line => {
+				fs.appendFileSync(csv, line);
+				console.log(chalk.green('[OK]') + ' Appended old and new path');
+			});
+			resolve();
+		} catch (ex) {
+			console.log(chalk.red('[FAILED]') + ' ' + ex.toString());
+			reject();
+		}
+	});
+	await Promise.allSettled([promise]);
 }
 
 async function processPayloadsPromise(payloads, loadFunc, config) {
@@ -54,7 +88,23 @@ async function writeMarkdownFilesPromise(posts, config ) {
 	await processPayloadsPromise(payloads, loadMarkdownFilePromise, config);
 }
 
-async function loadMarkdownFilePromise(post) {
+async function loadMarkdownFilePromise(post, config) {
+	if (config.frontmatter == false) {
+		let output = '';
+		if (post.frontmatter.title.length > 0) {
+			let t = post.frontmatter.title
+			output += '# ' + t + '\n\n';
+		}
+		if (post.frontmatter.date.length > 0) {
+			let d = post.frontmatter.date;
+			output += '_' + d + '_\n\n';
+		}
+		if (typeof post.frontmatter.coverImage !== "undefined") {
+			let c = post.frontmatter.coverImage
+			output += '![](images/' + c + ')\n\n';
+		}
+		return output + post.content + '\n';
+	}
 	let output = '---\n';
 	Object.entries(post.frontmatter).forEach(pair => {
 		const key = pair[0];
@@ -72,7 +122,7 @@ async function writeImageFilesPromise(posts, config) {
 		const postPath = getPostPath(post, config);
 		const imagesDir = path.join(path.dirname(postPath), 'images');
 		return post.meta.imageUrls.map(imageUrl => {
-			const filename = shared.getFilenameFromUrl(imageUrl);
+			const filename = shared.getFilenameFromUrl(imageUrl, config);
 			const payload = {
 				item: imageUrl,
 				name: filename,
